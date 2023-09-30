@@ -1,18 +1,21 @@
 ## Analyse démographique appliquée ##
 library(tidyverse)
-library(FactoMineR)
-library(factoextra)
-library(psych)
-library(questionr)
-library(gtsummary)
+#library(FactoMineR)
+#library(factoextra)
+#library(psych)
+#library(questionr)
+#library(gtsummary)
 library(readxl)
-library(labelled)
-library(GGally)
-library(survey)
-library(explor)
+#library(labelled)
+#library(GGally)
+#library(survey)
+#library(explor)
+library(reshape2)
 
-setwd("C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse démographique appliquée")
-Base <-read_excel("irsocsd2013_p3d_f.xls", sheet="Traitement")
+# setwd("C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse démographique appliquée")
+# setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Démographique Appliquée/ADA-Rapport-Dept-13/code")
+
+Base <-read_excel("../data/irsocsd2013_p3d_f.xls", sheet="Traitement")
 
 ##Nuage de points ICF / Âge moyen de la mère ##
 
@@ -30,9 +33,8 @@ legend("topright",legend=noms,col=couleurs,pch=3,title="ICF et âge moyen de la 
 
 ## Pyramide des âges 2020 ##
 
-library(ggplot2)
-library(reshape2)
-Age <- read_excel("Age2020.xlsx")
+
+Age <- read_excel("../data/Age2020.xlsx")
 
 donnees_regroup <- melt(Age, id.vars ="Ages",measure.vars=c("Hommes","Femmes"))
 
