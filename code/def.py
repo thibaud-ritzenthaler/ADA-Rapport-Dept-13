@@ -6,6 +6,7 @@ print(os.getcwd())
 
 survey = pd.read_csv("data/FD_INDREGZE_2020.csv")
 
+#blabla
 survey.head()
 
 
