@@ -1,0 +1,13 @@
+# Les Bouches-du-Rhône, un territoire dynamique
+## Présentation du contexte
+Les Bouches-du-Rhône font partie des rares départements qui connaissent une hausse continue de sa population. Entre 2009 et 2020, le département a vu sa population augmenter de + 4 % passant de 1,9 millions à 2 millions d’habitants. Cette hausse peut s’expliquer par un maintien de la fécondité à un niveau supérieur à la moyenne nationale (1,95 contre 1,78) et se caractérise par des premières naissances en moyenne plus tardive (31,1 ans contre 30,4 ans)  (figure 1). Cette dynamique est possiblement due à la position géographique du département avec une façade littorale induisant une attractivité de celui-ci d’un point de vue migratoire et transitoire. Il semble intéressant, par exemple, de noter que la ville de Marseille est le premier port de croisière de France avec une fréquentation touristique d’environ 5 à 7 millions d’individus en moyenne, et un des principaux port de marchandises du pays mais aussi de la Méditerranée. Le département constitue un point d'arrivée et de passage pour les populations en provenance de tout le pourtour méditerranéen et d’Afrique du Nord notamment.
+
+A revers de ce constat, il peut être remarqué que la dynamique de la population subit le phénomène du vieillissement démographique. La pyramide des âges (figure 2) rend visible la diminution progressive des naissances, donnant l’effet d’un rétrécissement à la base de cette dernière et d'un agrandissement de la part des effectifs à des âges plus élevés. La population âgée de 65 ans et plus représente 28 % de la population bucco-rhodanienne, avec un ratio de dépendance de 0,64 signifiant qu’il y’a un peu moins de deux actifs pour un inactif dans la région. 
+
+
+![Comparatif des départements en focntion de l'âge moyen de la mère à la naissance et de l'indicateur conjoncturel de fécondité](./nuage de points comparatifs departements.png)
+
+
+![Pyramide des âges du département des Bouches-du-Rhône](./pyramide.png)
+
+
