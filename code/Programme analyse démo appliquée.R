@@ -135,6 +135,15 @@ ggplot(tpa) +
   scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 5)) +
   labs(x = "Âge quinquennal", y = "Taux de fécondité par 100 ind")
 
+
+ggplot(tpa, aes(x = Age, y = Tauxparage, fill = Age)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Diagramme en Barres",
+       x = "Âge quinquennal des femmes",
+       y = "Taux de fécondité en %") +
+  theme_minimal() 
+  geom_text(aes(label = Age), vjust = -0.5) 
+
 ##########################################################################################################################################
 
 ##Rapport de dépendance 
