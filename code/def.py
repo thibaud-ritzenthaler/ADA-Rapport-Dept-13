@@ -23,4 +23,6 @@ survey13_kids_1year = survey13_kids.loc[survey13_kids['ANAI'] == first_year]
 survey13_mothers = survey13[survey13['SEXE'] == 2]
 survey13_mothers = survey13_mothers.loc[(survey13_mothers['LPRF'] == 1) | (survey13_mothers['LPRF'] == 2)]
 print(survey13_mothers['LPRF'].describe())
+
+
 # %%
