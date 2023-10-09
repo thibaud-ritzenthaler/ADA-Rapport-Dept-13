@@ -161,10 +161,105 @@ sum(Pjeune+Pvieux)/Pactif
 ##########################################################################################################################################
 ##Préparation & Chargement de la base de ses morts ## 
 
-#  RP<-read.csv("FD_INDREGZE_2020.csv", sep = ";")
-#  RP2020<-filter(FD_INDREGZE_2020,DEPT=="13")
-#  PopPonder=sum(RP2020$IPONDI)
-#  save(RP2020,file="C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse démographique appliquée/RP2020.rdata")
+RP<-read.csv("FD_INDREGZE_2020.csv", sep = ";")
+PopPonder=sum(RP2020$IPONDI)
+save(RP2020,file="C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse démographique appliquée/RP2020.rdata")
+
+PopPonder=sum(RP2020$IPONDI)
+
+Naiss <- read.csv("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/nais2020.csv", sep=";")
+
+
+## Naissances selon âge de la mère 
+
+Mère<- Naiss |> count (AGEMERE)
+
+## Effectif de femmes en âge de procréer (les bornes sont de 17-46 car il manque les naissances de 15-16 et 47-49 ans)
+
+Eff_f<- RP %>% filter(SEXE=="2")
+Eff_f<- Eff_f %>% filter(AGED>16,AGED<47) 
+
+Femmes<- Eff_f |> count(AGED)
+
+## Réalisation des taux de fécondité (méthode classique)
+
+Mère<-select(Mère,-AGEMERE)
+tf<-data.frame(Femmes,Mère)
+tf<-rename(tf, c("Femmes"="n", "Naissances"="n.1"))
+tf<-tf %>% mutate(Taux_de_fécondité=(tf$Naissances/tf$Femmes))
+
+
+
+## Méthode DEF 
+## Préparation de la base RP -> RP 2020 ##
+
+# Age en numérique
+RP <- RP %>% mutate(Agenum = RP$AGED* 1)
+RP <- RP %>% mutate(Agerev_num = RP$AGEREV* 1)
+
+# Identifiant du ménage
+RP <- RP %>% mutate(idmen = paste(RP$REGION,RP$NUMMR, sep = ""))
+
+# Identifiant de la famille
+RP <- RP %>% mutate(idfam = paste(RP$REGION, RP$NUMMR, RP$NUMF, sep = ""))
+
+# Identifiant de l'individu
+RP <- RP %>% mutate(idindiv =seq_along(AGED))
+
+# Année de collecte
+RP <- RP %>% mutate(Year = ((ANAI * 1) + Agenum))
+
+# Filtre pour ne garder que le 13
+RP2020<-filter(RP,DEPT=="13")
+
+#########################
 
 load("RP2020.rdata")
-PopPonder=sum(RP2020$IPONDI)
+
+# Obtenir les enfants potentiels (1 an, dept, LPRF="3")
+ENFANTS <- RP2020 %>%
+  filter(Agenum == "1", LPRF == "3") %>%
+  select(idfam, LPRF, IPONDI , DEPT)
+
+# Fréquence des départements pour les enfants
+FreqEnfants <- table(ENFANTS$DEPT)
+
+# Effectifs non pondérés
+Eff_ponder <- table(ENFANTS$IPONDI)
+
+# Vérification des naissances multiples ou nées la même année
+MenJum <- table(ENFANTS$idfam)  ### Ne marche pas
+
+# Obtenir les mères potentielles (1 an, dept, LPRF="3")
+MERES <- RP2020 %>%
+  filter(Agenum >= 16 & Agenum <= 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
+  select(idfam, LPRF, Agenum, DEPT)
+
+# Fréquence des départements pour les mères
+FreqMeres <- table(MERES$DEPT)
+
+# Couples de même sexe
+MMSXm <- table(MERES$IDFAM)
+
+# Fusionner et filtrer les données
+Nais <- merge(ENFANTS, MERES, by = "idfam")
+Nais <- Nais[complete.cases(Nais),]
+
+# Numérateur
+Num <- table(Nais$AgeNum, Nais$DEPT)
+
+# Création de la table FEMMES
+Den <- table(RPDEPT$Agenum, RPDEPT$DEPT)[RPDEPT$SEXE == 2 & RPDEPT$Agenum >= 16 & RPDEPT$Agenum <= 50]
+
+# Calcul des taux
+Taux <- data.frame(AgeNum = rep(names(Den), each = length(Num)),
+                   DEPT = rep(rownames(Num), times = ncol(Num)))
+Taux$tx <- Num / Den
+
+# Calcul des ICF
+ICF <- tapply(Taux$tx, Taux$DEPT, sum)
+
+# Calculs supplémentaires
+Cal672014 <- tapply(Taux$AgeNum, Taux$DEPT, mean, na.rm = TRUE, weight = Taux$tx)
+
+
