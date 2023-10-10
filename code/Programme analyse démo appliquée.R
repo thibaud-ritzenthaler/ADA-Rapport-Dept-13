@@ -207,10 +207,11 @@ RP <- RP %>% mutate(idfam = paste(RP$REGION, RP$NUMMR, RP$NUMF, sep = ""))
 RP <- RP %>% mutate(idindiv =seq_along(AGED))
 
 # Année de collecte
-RP <- RP %>% mutate(Year = ((ANAI * 1) + Agenum))
+RP <- RP %>% mutate(Ear = ((ANAI * 1) + Agenum))
 
 # Filtre pour ne garder que le 13
 RP2020<-filter(RP,DEPT=="13")
+
 
 #########################
 
@@ -221,25 +222,25 @@ ENFANTS <- RP2020 %>%
   filter(Agenum == "1", LPRF == "3") %>%
   select(idfam, LPRF, IPONDI , DEPT)
 
-# Fréquence des départements pour les enfants
-FreqEnfants <- table(ENFANTS$DEPT)
-
 # Effectifs non pondérés
-Eff_ponder <- table(ENFANTS$IPONDI)
+Eff_ponder <- sum(ENFANTS$IPONDI)
 
 # Vérification des naissances multiples ou nées la même année
-MenJum <- table(ENFANTS$idfam)  ### Ne marche pas
+MenJum <- table(ENFANTS$idfam)
+View(MenJum)
 
 # Obtenir les mères potentielles (1 an, dept, LPRF="3")
 MERES <- RP2020 %>%
-  filter(Agenum >= 16 & Agenum <= 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
-  select(idfam, LPRF, Agenum, DEPT)
+  filter(Agenum > 15 & Agenum <= 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
+  select(idfam, LPRF, Agenum, DEPT,IPONDI)
 
-# Fréquence des départements pour les mères
-FreqMeres <- table(MERES$DEPT)
+## Mères ponder 
+Eff_ponder_M <-sum(MERES$IPONDI)
+View(Eff_ponder_M)
 
 # Couples de même sexe
-MMSXm <- table(MERES$IDFAM)
+MMSXm <- table(MERES$idfam)
+View(MMSXm)
 
 # Fusionner et filtrer les données
 Nais <- merge(ENFANTS, MERES, by = "idfam")
@@ -249,12 +250,12 @@ Nais <- Nais[complete.cases(Nais),]
 Num <- table(Nais$AgeNum, Nais$DEPT)
 
 # Création de la table FEMMES
-Den <- table(RPDEPT$Agenum, RPDEPT$DEPT)[RPDEPT$SEXE == 2 & RPDEPT$Agenum >= 16 & RPDEPT$Agenum <= 50]
+Den <- table(RP2020$Agenum, RP2020$DEPT)[RP2020$SEXE == 2 & RP2020$Agenum >= 16 & RP2020$Agenum <= 50]
 
 # Calcul des taux
 Taux <- data.frame(AgeNum = rep(names(Den), each = length(Num)),
                    DEPT = rep(rownames(Num), times = ncol(Num)))
-Taux$tx <- Num / Den
+RP2020<- RP2020 %>% mutate(Taux$tx= Num / Den)
 
 # Calcul des ICF
 ICF <- tapply(Taux$tx, Taux$DEPT, sum)
@@ -263,3 +264,8 @@ ICF <- tapply(Taux$tx, Taux$DEPT, sum)
 Cal672014 <- tapply(Taux$AgeNum, Taux$DEPT, mean, na.rm = TRUE, weight = Taux$tx)
 
 
+117531/(117531+74668)
+343761.4/(343761.4+215245.7)
+
+
+##ICF doit etre egal 1,69 et AGEMOY 32,24
