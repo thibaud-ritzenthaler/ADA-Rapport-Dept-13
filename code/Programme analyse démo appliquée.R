@@ -231,7 +231,7 @@ View(MenJum)
 
 # Obtenir les mères potentielles (1 an, dept, LPRF="3")
 MERES <- RP2020 %>%
-  filter(Agenum > 15 & Agenum <= 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
+  filter(Agenum >= 15 & Agenum < 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
   select(idfam, LPRF, Agenum, DEPT,IPONDI)
 
 ## Mères ponder 
@@ -247,15 +247,20 @@ Nais <- merge(ENFANTS, MERES, by = "idfam")
 Nais <- Nais[complete.cases(Nais),]
 
 # Numérateur
-Num <- table(Nais$AgeNum, Nais$DEPT)
+Num <- table(Nais$Agenum)
+view(Num)
 
 # Création de la table FEMMES
-Den <- table(RP2020$Agenum, RP2020$DEPT)[RP2020$SEXE == 2 & RP2020$Agenum >= 16 & RP2020$Agenum <= 50]
+MERES <- MERES %>% mutate(Agenum = MERES$Agenum* 1)
+
+
+Den <- table(MERES$Agenum)
+
+View(Den)
 
 # Calcul des taux
-Taux <- data.frame(AgeNum = rep(names(Den), each = length(Num)),
-                   DEPT = rep(rownames(Num), times = ncol(Num)))
-RP2020<- RP2020 %>% mutate(Taux$tx= Num / Den)
+Taux<-sum(Nais$Freq)/sum(Den$Freq)
+RP2020 <- RP2020 %>% mutate(Taux$tx= Num / Den)
 
 # Calcul des ICF
 ICF <- tapply(Taux$tx, Taux$DEPT, sum)
@@ -263,9 +268,6 @@ ICF <- tapply(Taux$tx, Taux$DEPT, sum)
 # Calculs supplémentaires
 Cal672014 <- tapply(Taux$AgeNum, Taux$DEPT, mean, na.rm = TRUE, weight = Taux$tx)
 
-
-117531/(117531+74668)
-343761.4/(343761.4+215245.7)
-
+sum(M)
 
 ##ICF doit etre egal 1,69 et AGEMOY 32,24
