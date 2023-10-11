@@ -231,7 +231,7 @@ View(MenJum)
 
 # Obtenir les mères potentielles (1 an, dept, LPRF="3")
 MERES <- RP2020 %>%
-  filter(Agenum >= 15 & Agenum < 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
+  filter(Agenum >15 & Agenum <= 50, SEXE == "2" & (LPRF == "1" | LPRF == "2")) %>%
   select(idfam, LPRF, Agenum, DEPT,IPONDI)
 
 ## Mères ponder 
@@ -246,28 +246,20 @@ View(MMSXm)
 Nais <- merge(ENFANTS, MERES, by = "idfam")
 Nais <- Nais[complete.cases(Nais),]
 
+NAIS <- Nais |> count (Nais$Agenum)
+
+
 # Numérateur
 Num <- table(Nais$Agenum)
-view(Num)
+
 
 # Création de la table FEMMES
 MERES <- MERES %>% mutate(Agenum = MERES$Agenum* 1)
 
+meres <-MERES |> count(MERES$Agenum)
 
-Den <- table(MERES$Agenum)
 
-View(Den)
-
-# Calcul des taux
-Taux<-sum(Nais$Freq)/sum(Den$Freq)
-RP2020 <- RP2020 %>% mutate(Taux$tx= Num / Den)
-
-# Calcul des ICF
-ICF <- tapply(Taux$tx, Taux$DEPT, sum)
-
-# Calculs supplémentaires
-Cal672014 <- tapply(Taux$AgeNum, Taux$DEPT, mean, na.rm = TRUE, weight = Taux$tx)
-
-sum(M)
+FEMMES <- RP2020 %>% filter(SEXE=="2" & Agenum >15 & Agenum <= 50)
+FEMMES <- FEMMES |> count(FEMMES$Agenum)
 
 ##ICF doit etre egal 1,69 et AGEMOY 32,24
