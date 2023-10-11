@@ -117,7 +117,7 @@ tauxbis$taux=tauxbis$Freq.y/tauxbis$Freq.x
 sum(tauxbis$taux)
 
 
-
+#Age moyen
 
 meres$age=seq(from=16,to=50)
 meres$agemoy=meres$age*meres$Freq
