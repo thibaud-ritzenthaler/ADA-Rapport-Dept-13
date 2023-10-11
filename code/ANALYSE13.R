@@ -4,7 +4,7 @@ library(questionr)
 
 #On charge les données
 
-FD_INDREGZE_2020=read.csv("~/Desktop/Analyse démo appliquée/FD_INDREGZE_2020.csv", sep=";")
+FD_INDREGZE_2020=read.csv("/Users/adelejnd/Desktop/Analyse démo appliquée/FD_INDREGZE_2020.csv", sep=";")
 
 #On veut juste le département des Bouches-du-Rhone
 
@@ -122,3 +122,5 @@ sum(tauxbis$taux)
 meres$age=seq(from=16,to=50)
 meres$agemoy=meres$age*meres$Freq
 sum(meres$agemoy)/sum(meres$Freq)
+
+
