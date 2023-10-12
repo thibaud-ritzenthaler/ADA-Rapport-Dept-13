@@ -6,10 +6,10 @@ library(questionr)
 #setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13")
 
 #Adele
-#setwd("/Users/adelejnd/Desktop")
+setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
 
 #On charge juste le fichier déjà filtré
-load("./ADA-Rapport-Dept-13/data/BDR2020.rdata")
+load("./BDR2020.rdata")
 bdr2020 <- BDR2020
 rm(BDR2020)
 
