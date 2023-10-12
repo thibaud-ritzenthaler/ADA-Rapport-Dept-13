@@ -3,33 +3,23 @@ import os
 
 print(os.getcwd())
 
-survey = pd.read_csv("../data/FD_INDREGZE_2020.csv", sep=";")
+# survey = pd.read_csv("../data/FD_INDREGZE_2020.csv", sep=";")
+survey = pd.read_feather("../data/BDR2020.feather")
 
-# On garde que les bouches du rhones
-survey13 = survey.loc[survey["DEPT"] == 13]
+# ID of the household
+survey["idmen"] = survey.REGION.map(str) + survey.NUMMR
 
+# ID of the family
+survey["idfam"] = survey.idmen.map(str) + survey.NUMF
 
-# One year kids with age reached in the year
-# Hypothesis that the census is from 2020
-survey13_1year_kids = survey13.loc[(survey13['AGED'] == 1) & (survey13['LPRF'] == 3)]
-# survey13_kids_1year.describe()
-# survey13_1year_kids = survey13[(survey13['LPRF'] == 3)]
+enfants_potentiels = survey.loc[(survey['AGED'] == 1) & (survey['LPRF'] == 3)]
 
+femmes_procreer = survey[(survey['SEXE'] == 2) & ((survey['AGED'] >= 16) & (survey['AGED'] <= 50))]
+femmes_procreer = femmes_procreer.loc[(femmes_procreer['LPRF'] == 1) | (femmes_procreer['LPRF'] == 2)]
 
+enfants_potentiels = enfants_potentiels[["idfam", "LPRF", "AGED", "DEPT", "IPONDI"]]
+enfants_potentiels.rename(
+    columns={"LPRF": "LPRF_enf", "AGED": "AGED_enf", "DEPT": "DEPT_enf", "IPONDI": "IPONDI_enf"}, inplace=True)
+femmes_procreer = femmes_procreer[["idfam", "LPRF", "AGED", "DEPT", "IPONDI"]]
 
-
-# survey13_univariate = survey13['IPONDI'].describe()
-
-# print(survey13.describe())
-# print(survey13_kids.describe())
-# print(survey13['LPRM'].describe())
-# print(survey13_kids['LPRM'].describe())
-
-survey13_mothers = survey13[(survey13['SEXE'] == 2) & ((survey13['AGED'] >= 16) & (survey13['AGED'] <= 50))]
-survey13_mothers = survey13_mothers.loc[(survey13_mothers['LPRF'] == 1) | (survey13_mothers['LPRF'] == 2)]
-survey13_mothers.describe()
-survey13.loc[((survey13['MOCO'] == 21) | (survey13['MOCO'] == 22)) & (survey13['LPRF'] == 1)].describe()
-
-
-
-# %%
+bdd = pd.merge(femmes_procreer, enfants_potentiels)
