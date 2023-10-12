@@ -2,7 +2,6 @@
 library(tidyverse)
 library(questionr)
 
-
 #setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13")
 
 #Adele
@@ -12,6 +11,10 @@ setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
 load("./BDR2020.rdata")
 bdr2020 <- BDR2020
 rm(BDR2020)
+
+#On enlève les z, logements pas ordinaires
+
+bdr2020 <- filter(bdr2020,TYPL!="Z")
 
 # On fait la somme de la variable ipondi pour connaitre la population du departement
 pop13 <- sum(bdr2020$IPONDI)
@@ -71,30 +74,34 @@ nais <- as.data.frame(wtd.table(bdd$AGED, weights = bdd$IPONDI))
 # Pour les meres
 meres <- as.data.frame(wtd.table(femmes_procreer$AGED, weights = femmes_procreer$IPONDI))
 
-# Calcul des taux par age
-taux <- as.data.frame(nais$Freq/meres$Freq)
-sum(taux$`nais$Freq/meres$Freq`)
-
 #Table femmes
 femmes <- filter(bdr2020, SEXE==2 & (AGED>15 & AGED<=50))
 femmes <- select(femmes, idfam, LPRF, AGED, DEPT, IPONDI)
 femmes_tab <- as.data.frame(wtd.table(femmes$AGED, weights = femmes$IPONDI))
 
-tauxbis <- merge(femmes_tab, nais, by="Var1")
-tauxbis$taux <- tauxbis$Freq.y/tauxbis$Freq.x
-sum(tauxbis$taux)
+#On joint les femmes aux naissances
+taux <- merge(femmes_tab, nais, by="Var1")
 
-# Age moyen des meres, à priori pas bon
-meres$age <- seq(from=16, to=50)
-meres$agemoy <- meres$age * meres$Freq
-sum(meres$agemoy)/sum(meres$Freq)
+#On rajoute la variable de l'âge
+taux$age <- seq(from=16, to=50)
+
+#On enlève les variables inutiles
+taux <- select(taux,-Var1)
+
+#On met dans le bon ordre les variables
+taux <- select(taux,age,Freq.x,Freq.y)
+
+#On renomme les variables
+colnames(taux) <- c("Âge","Femmes en âge de procréer","Naissances")
+
+#On calcule les taux par âge
+taux$taux_par_âge <- taux$Naissances/taux$`Femmes en âge de procréer`
+
+#On fait la somme des taux par âge pour avoir l'ICF
+ICF <- sum(taux$taux_par_âge)
 
 #Age moyen des femmes, pondéré avec les taux par âge 
-tauxbis$age <- seq(from=16, to=50)
-result <- tauxbis %>%
-  summarize(AgeM = weighted.mean(age, w = taux))
-
-
+age_moy <- weighted.mean(taux$Âge,w=taux$taux_par_âge)
 
 
 
