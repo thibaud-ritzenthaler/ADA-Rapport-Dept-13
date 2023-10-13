@@ -129,4 +129,4 @@ indicateurs(csp34)
 #On exporte en excel les taux de toutes les femmes
 write_xlsx(taux,"C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/taux.xlsx")
 
-
+#!#
