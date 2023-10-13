@@ -1,6 +1,7 @@
 #Chargement des packages
 library(tidyverse)
 library(questionr)
+library(writexl)
 
 #setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13")
 
@@ -13,7 +14,6 @@ bdr2020 <- BDR2020
 rm(BDR2020)
 
 #On enlève les z, logements pas ordinaires
-
 bdr2020 <- filter(bdr2020,TYPL!="Z")
 
 # On fait la somme de la variable ipondi pour connaitre la population du departement
@@ -76,34 +76,57 @@ meres <- as.data.frame(wtd.table(femmes_procreer$AGED, weights = femmes_procreer
 
 #Table femmes
 femmes <- filter(bdr2020, SEXE==2 & (AGED>15 & AGED<=50))
-femmes <- select(femmes, idfam, LPRF, AGED, DEPT, IPONDI)
-femmes_tab <- as.data.frame(wtd.table(femmes$AGED, weights = femmes$IPONDI))
+femmes <- select(femmes, idfam, LPRF, AGED, CS1, DEPT, DIPL, IPONDI)
 
-#On joint les femmes aux naissances
-taux <- merge(femmes_tab, nais, by="Var1")
+#On crée des tables suivant la CSP
+csp1 <- filter(femmes,CS1=="1")
+csp2 <- filter(femmes,CS1=="2")
+csp34 <- filter(femmes,CS1 %in% c("3","4"))
+csp56 <- filter(femmes,CS1 %in% c("5","6"))
 
-#On rajoute la variable de l'âge
-taux$age <- seq(from=16, to=50)
+indicateurs=function(femmes){
+  
+  femmes_tab <- as.data.frame(wtd.table(femmes$AGED, weights = femmes$IPONDI))
+  
+  #On joint les femmes aux naissances
+  taux <- merge(femmes_tab, nais, by="Var1")
+  
+  #On rajoute la variable de l'âge
+  taux$age <- seq(from=16, to=50)
+  
+  #On enlève les variables inutiles
+  taux <- select(taux,-Var1)
+  
+  #On met dans le bon ordre les variables
+  taux <- select(taux,age,Freq.x,Freq.y)
+  
+  #On renomme les variables
+  colnames(taux) <- c("Âge","Femmes en âge de procréer","Naissances")
+  
+  #On calcule les taux par âge
+  taux$taux_par_âge <- taux$Naissances/taux$`Femmes en âge de procréer`
+  
+  #On fait la somme des taux par âge pour avoir l'ICF
+  ICF <- sum(taux$taux_par_âge)
+  
+  #Age moyen des femmes, pondéré avec les taux par âge 
+  age_moy <- weighted.mean(taux$Âge,w=taux$taux_par_âge)
+  
+  #On met les résultats dans un tableau
+  indicateurs <- data.frame(matrix(ncol=2,nrow=1))
+  colnames(indicateurs) <- c("ICF", "age_moy")
+  indicateurs[1,1] <- ICF
+  indicateurs[1,2] <- age_moy
+  
+  return(indicateurs)
+  
+}
 
-#On enlève les variables inutiles
-taux <- select(taux,-Var1)
+indicateurs(femmes)
+indicateurs(csp56)
+indicateurs(csp34)
 
-#On met dans le bon ordre les variables
-taux <- select(taux,age,Freq.x,Freq.y)
-
-#On renomme les variables
-colnames(taux) <- c("Âge","Femmes en âge de procréer","Naissances")
-
-#On calcule les taux par âge
-taux$taux_par_âge <- taux$Naissances/taux$`Femmes en âge de procréer`
-
-#On fait la somme des taux par âge pour avoir l'ICF
-ICF <- sum(taux$taux_par_âge)
-
-#Age moyen des femmes, pondéré avec les taux par âge 
-age_moy <- weighted.mean(taux$Âge,w=taux$taux_par_âge)
+#On exporte en excel les taux de toutes les femmes
+write_xlsx(taux,"C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/taux.xlsx")
 
 
-
-
-#!#
