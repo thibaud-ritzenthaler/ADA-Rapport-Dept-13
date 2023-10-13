@@ -4,6 +4,7 @@ library(questionr)
 library(writexl)
 
 #setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13")
+#setwd("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data")
 
 # Adele
 setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
@@ -134,13 +135,13 @@ indicateurs=function(femmes,femmes_procreer){
   
 }
 
-indicateurs(femmes,femmes_procreer)
+taux_def=indicateurs(femmes,femmes_procreer)
 taux_56=indicateurs(fcsp56,mcsp56)
 taux_34=indicateurs(fcsp34,mcsp34)
 indicateurs(fcsp8,mcsp8)
 indicateurs(fcsp1,mcsp1)
 
 # On exporte en excel les taux de toutes les femmes
-write_xlsx(taux,"./taux.xlsx")
+write_xlsx(taux_def,"./taux_def.xlsx")
 write_xlsx(taux_34,"./taux34.xlsx")
 write_xlsx(taux_56,"./taux56.xlsx")
