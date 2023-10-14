@@ -11,7 +11,7 @@ library(readxl)
 #library(survey)
 #library(explor)
 library(reshape2)
-
+library(writexl)
 
 setwd("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data")
 
@@ -59,66 +59,28 @@ ggplot(donnees_regroup,aes(x=Ages, y=value, fill= variable, group = variable)) +
   theme_minimal()
 
 ##########################################################################################################################################
-#Naissances BDR
-naiss<-read_excel("FD_NAIS_2021BDR.xlsx")
+# Calcul des taux de fécondité (Méthode classique)
+naiss<-read_csv("FD_NAIS_2019.csv")
+naiss <- FD_NAIS_2019
 
-#Table de Population de femmes 15-49 ans BDR
-Femmes15_49 <- read_excel("Femmes15-49.xlsx")
+## On filtre pour n'avoir que le dep 13
 
-
-## Recodage de naiss$AGEMERE en naiss$AGEMERE_rec
-naiss$AGEMERE_rec <- as.character(naiss$AGEMERE)
-
-naiss$AGEMERE_rec[naiss$AGEMERE == "15"] <- "15 à 19 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "16"] <- "15 à 19 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "17"] <- "15 à 19 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "18"] <- "15 à 19 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "19"] <- "15 à 19 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "20"] <- "20 à 24 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "21"] <- "20 à 24 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "22"] <- "20 à 24 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "23"] <- "20 à 24 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "24"] <- "20 à 24 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "25"] <- "25 à 29 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "26"] <- "25 à 29 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "27"] <- "25 à 29 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "28"] <- "25 à 29 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "29"] <- "25 à 29 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "30"] <- "30 à 34 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "31"] <- "30 à 34 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "32"] <- "30 à 34 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "33"] <- "30 à 34 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "34"] <- "30 à 34 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "35"] <- "35 à 39 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "36"] <- "35 à 39 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "37"] <- "35 à 39 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "38"] <- "35 à 39 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "39"] <- "35 à 39 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "40"] <- "40 à 44 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "41"] <- "40 à 44 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "42"] <- "40 à 44 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "43"] <- "40 à 44 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "44"] <- "40 à 44 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "45"] <- "45 à 49 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "46"] <- "45 à 49 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "47"] <- "45 à 49 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "48"] <- "45 à 49 ans"
-naiss$AGEMERE_rec[naiss$AGEMERE == "49"] <- "45 à 49 ans"
-
-naiss |> count (AGEMERE_rec)
+naiss <- naiss %>% filter(DEPDOM=="13")
 
 
-#Liste de valeurs d'ages de la mère de 15-49 ans par groupes d'âge de 5 ans.
-Nbnaiss <- c(251, 2167, 6625, 9225, 5627, 1575, 114)
+NAISS <- naiss |> count (AGEMERE)
 
+## On charge le RP2020 pour avoir les femmes en âge de procréer en 2019.
 
-Naisparage <- data.frame(Nbnaiss)
+load("RP2020.Rdata")
+FEMMES <- RP2020 %>% filter(SEXE=="2" & Agenum >16 & Agenum <= 46)
+FEMMES <- FEMMES |> count(FEMMES$Agenum)
 
-# On conbine les tables nais par age de la mère et pop de femmes 15-49 ans
-tpa<-cbind(Femmes15_49,Naisparage)
+# On combine les tables nais par age de la mère et pop de femmes 15-49 ans
+TFA <- cbind(FEMMES,NAISS)
 
 #calcul de taux par âge
-tpa<-mutate(tpa, Tauxparage=Nbnaiss/Popfm*100)
+TFA <- TFA %>% mutate(TFA, Tauxparage=n.1/n)
 
 tpa<-mutate(tpa, Tauxparage5=Nbnaiss/Popfm*5)
 
@@ -263,3 +225,5 @@ FEMMES <- RP2020 %>% filter(SEXE=="2" & Agenum >15 & Agenum <= 50)
 FEMMES <- FEMMES |> count(FEMMES$Agenum)
 
 ##ICF doit etre egal 1,69 et AGEMOY 32,24
+
+write_xlsx(TFA,"./Taux_classique.xlsx")
