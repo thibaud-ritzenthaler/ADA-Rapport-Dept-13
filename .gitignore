@@ -1,5 +1,10 @@
 # Too big
 data/FD_INDREGZE_2020.csv
+data//BDR2020.feather
+
+# Icloud
+*.icloud
+data/*.icloud
 
 # Created by https://www.toptal.com/developers/gitignore/api/r,microsoftoffice
 # Edit at https://www.toptal.com/developers/gitignore?templates=r,microsoftoffice
