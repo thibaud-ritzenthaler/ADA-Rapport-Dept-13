@@ -3,11 +3,11 @@ library(tidyverse)
 library(questionr)
 library(writexl)
 
-#setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13")
+#setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13/data")
 #setwd("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data")
 
 # Adele
-setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
+# setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
 
 # On charge juste le fichier déjà filtré
 load("./BDR2020.rdata")
