@@ -173,4 +173,5 @@ write_xlsx(taux_56,"./taux56.xlsx")
 write_xlsx(taux_12,"./taux12.xlsx")
 write_xlsx(taux_8,"./taux8.xlsx")
 
+taux_detail <- taux_detail %>% rownames_to_column(var="type")
 write_csv(taux_detail,"./taux_detail.csv")
