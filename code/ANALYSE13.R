@@ -89,7 +89,7 @@ enfants_potentiels <- select(enfants_potentiels, idfam, LPRF, AGED, DEPT, IPONDI
 # On renomme les variables
 colnames(enfants_potentiels) <- c("idfam", "LPRF_enf", "AGED_enf", "DEPT_enf", "IPONDI_enf")
 
-indicateurs=function(femmes,femmes_procreer){
+indicateurs <- function(femmes,femmes_procreer){
   
   # On fait la jointure entre les mères potentielles et les enfants potentiels
   bdd <- merge(femmes_procreer, enfants_potentiels, by="idfam")
@@ -135,8 +135,8 @@ indicateurs=function(femmes,femmes_procreer){
 }
 
 indicateurs(femmes,femmes_procreer)
-taux_56=indicateurs(fcsp56,mcsp56)
-taux_34=indicateurs(fcsp34,mcsp34)
+taux_56 <- indicateurs(fcsp56,mcsp56)
+taux_34 <- indicateurs(fcsp34,mcsp34)
 indicateurs(fcsp8,mcsp8)
 indicateurs(fcsp1,mcsp1)
 
