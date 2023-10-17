@@ -3,11 +3,11 @@ library(tidyverse)
 library(questionr)
 library(writexl)
 
-#setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13")
+#setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13/data")
 #setwd("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data")
 
 # Adele
-setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
+# setwd("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data")
 
 # On charge juste le fichier déjà filtré
 load("./BDR2020.rdata")
@@ -71,16 +71,15 @@ fcsp34 <- filter(femmes,CS1 %in% c("3","4"))
 fcsp56 <- filter(femmes,CS1 %in% c("5","6"))
 fcsp8 <- filter(femmes,CS1=="8")
 
-# On cree une table avec la CSP croisée avec le statut d'activite
-
-csp12_tact_11 <- filter(fcsp12, TACT==11)
-csp12_tact_12 <- filter(fcsp12, TACT==12)
-csp34_tact_11 <- filter(fcsp34, TACT==11)
-csp34_tact_12 <- filter(fcsp34, TACT==12)
-csp56_tact_11 <- filter(fcsp56, TACT==11)
-csp56_tact_12 <- filter(fcsp56, TACT==12)
-csp8_tact_12 <- filter(fcsp8, TACT==12)
-csp8_tact_autres <- filter(fscp8, TACT!=12)
+# On cree une table des femmes avec la CSP croisée avec le statut d'activite
+fcsp12_tact_11 <- filter(fcsp12, TACT==11)
+fcsp12_tact_12 <- filter(fcsp12, TACT==12)
+fcsp34_tact_11 <- filter(fcsp34, TACT==11)
+fcsp34_tact_12 <- filter(fcsp34, TACT==12)
+fcsp56_tact_11 <- filter(fcsp56, TACT==11)
+fcsp56_tact_12 <- filter(fcsp56, TACT==12)
+fcsp8_tact_12 <- filter(fcsp8, TACT==12)
+fcsp8_tact_autres <- filter(fcsp8, TACT!=12)
 
 # Table des meres potentielles
 femmes_procreer <- filter(bdr2020, (SEXE==2) & (AGED>15 & AGED<=50) & (LPRF==1 | LPRF==2))
@@ -93,7 +92,17 @@ mcsp34 <- filter(femmes_procreer,CS1 %in% c("3","4"))
 mcsp56 <- filter(femmes_procreer,CS1 %in% c("5","6"))
 mcsp8 <- filter(femmes_procreer,CS1=="8")
 
-# On selectionnes les variables utiles
+#On cree table des meres avec csp croisee avec statut
+mcsp12_tact_11 <- filter(mcsp12, TACT==11)
+mcsp12_tact_12 <- filter(mcsp12, TACT==12)
+mcsp34_tact_11 <- filter(mcsp34, TACT==11)
+mcsp34_tact_12 <- filter(mcsp34, TACT==12)
+mcsp56_tact_11 <- filter(mcsp56, TACT==11)
+mcsp56_tact_12 <- filter(mcsp56, TACT==12)
+mcsp8_tact_12 <- filter(mcsp8, TACT==12)
+mcsp8_tact_autres <- filter(mcsp8, TACT!=12)
+
+# On selectionne les variables utiles
 enfants_potentiels <- select(enfants_potentiels, idfam, LPRF, AGED, DEPT, IPONDI)
 
 # On renomme les variables
@@ -108,18 +117,13 @@ indicateurs <- function(femmes,femmes_procreer){
   nais <- as.data.frame(wtd.table(bdd$AGED, weights = bdd$IPONDI))
   
   femmes_tab <- as.data.frame(wtd.table(femmes$AGED, weights = femmes$IPONDI))
+  femmes_tab$Var1 <- as.numeric(as.character(femmes_tab$Var1))
   
   # On joint les femmes aux naissances
   taux <- merge(femmes_tab, nais, by="Var1")
   
-  # On rajoute la variable de l'âge
-  taux$age <- seq(from=min(bdd$AGED), to=max(bdd$AGED))
-  
-  # On enlève les variables inutiles
-  taux <- select(taux,-Var1)
-  
   # On met dans le bon ordre les variables
-  taux <- select(taux,age,Freq.x,Freq.y)
+  taux <- select(taux,Var1,Freq.x,Freq.y)
   
   # On renomme les variables
   colnames(taux) <- c("Âge","Femmes en âge de procréer","Naissances")
@@ -150,9 +154,24 @@ taux_34 <- indicateurs(fcsp34,mcsp34)
 taux_56 <- indicateurs(fcsp56,mcsp56)
 taux_8 <- indicateurs(fcsp8,mcsp8)
 
+taux_csp12_actifs <- indicateurs(fcsp12_tact_11,mcsp12_tact_11)
+taux_csp34_actifs <- indicateurs(fcsp34_tact_11,mcsp34_tact_11)
+taux_csp56_actifs <- indicateurs(fcsp56_tact_11,mcsp56_tact_11)
+taux_csp12_chom <- indicateurs(fcsp12_tact_12,mcsp12_tact_12)
+taux_csp34_chom <- indicateurs(fcsp34_tact_12,mcsp34_tact_12)
+taux_csp56_chom <- indicateurs(fcsp56_tact_12,mcsp56_tact_12)
+taux_csp8_chom <- indicateurs(fcsp8_tact_12,mcsp8_tact_12)
+taux_csp8_autres <- indicateurs(fcsp8_tact_autres,mcsp8_tact_autres)
+
+taux_detail <- rbind(taux_csp12_actifs,taux_csp12_chom,taux_csp34_actifs,taux_csp34_chom,taux_csp56_actifs,taux_csp56_chom,taux_csp8_autres,taux_csp8_chom)
+rownames(taux_detail)=c("taux_csp12_actifs","taux_csp12_chom","taux_csp34_actifs","taux_csp34_chom","taux_csp56_actifs","taux_csp56_chom","taux_csp8_autres","taux_csp8_chom")
+
 # On exporte en excel les taux de toutes les femmes
 write_xlsx(taux_def,"./taux_def.xlsx")
 write_xlsx(taux_34,"./taux34.xlsx")
 write_xlsx(taux_56,"./taux56.xlsx")
 write_xlsx(taux_12,"./taux12.xlsx")
 write_xlsx(taux_8,"./taux8.xlsx")
+
+taux_detail <- taux_detail %>% rownames_to_column(var="type")
+write_csv(taux_detail,"./taux_detail.csv")
