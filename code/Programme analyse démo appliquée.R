@@ -22,7 +22,7 @@ setwd("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data"
 
 ## Ajout de la base et création d'une variable permettant de différencier le département des autres ##
 
-Base <-read_excel("p3d.xlsx",sheet="2020") %>% mutate(isBouchesDuRhone =case_when(DEP == "Bouches-du-Rhône" ~ "Bouches-du-Rhône", TRUE ~ ""))
+Base <-read_excel("p3d.xlsx",sheet="2019") %>% mutate(isBouchesDuRhone =case_when(DEP == "Bouches-du-Rhône" ~ "Bouches-du-Rhône", TRUE ~ ""))
 
 Legend<-data.frame(
   x=c(29,29,34,34),
@@ -43,7 +43,21 @@ ggplot(data = Base) +
   theme(legend.position = "none")
 
 #######################################################################################################################################
+## Création d'une courbe de l'évolution de l'ICF et Age moyen 
 
+Base <-read_excel("p3d.xlsx",sheet="ICF")
+
+ggplot(Base) +
+  aes(x = Année, y =  ICF) +
+  geom_point(shape = "circle", size = 1.5, colour = "red") +
+  geom_line(aes(group = 1), size = 1, color = "black") +
+  theme_minimal() + 
+  scale_y_continuous(limits = c(1, 2.5), breaks = seq(1, 2.5, by = 0.2)) +
+  scale_x_continuous(limits = c(1990, 2020), breaks = seq(1990, 2020, by = 2)) +
+  labs(x = "Ânnées", y = "Indice Conjoncturel de fécondité")
+
+
+########################################################################################################################################
 ## Pyramide des âges 2020 ##
 
 Age <- read_excel("Age2020.xlsx")
@@ -226,4 +240,35 @@ FEMMES <- FEMMES |> count(FEMMES$Agenum)
 
 ##ICF doit etre egal 1,69 et AGEMOY 32,24
 
-write_xlsx(TFA,"./Taux_classique.xlsx")
+### A terminer 
+
+
+
+
+
+################################################################################################################
+
+## Réalisation du graph ICF par classes 
+taux_detail <- read_csv("./taux_detail.csv") %>% mutate(CS = substr(type, 6,10))
+
+taux_detail <- taux_detail %>% mutate(CSP= c("CSP 1 et 2 en emploi","CSP 1 et 2 au chômage","CSP 3 et 4 en emploi","CSP 3 et 4 au chômage","CSP 5 et 6 en emploi","CSP 5 et 6 au chômage","CSP 8_Others","CSP 8 au chômage")) 
+)
+
+ggplot(taux_detail) +
+  geom_point(aes(x = age_moy, y = ICF, color= CSP)) +
+  geom_label(aes(x = age_moy, y = ICF, label = CSP)) +
+  xlab("Age moyen") +
+  ylab("Indice conjoncturel de f\u00e9condit\u00e9") +
+  theme_light() +
+  theme(legend.position= "none")
+
+taux_detail$label_nudge <- ifelse(taux_detail$CSP == "CSP 1 et 2 au chômage", -0.05, 0.05)
+
+ggplot(taux_detail) +
+  geom_point(aes(x = CS, y = ICF, color= age_moy)) +
+  geom_label(aes(x = CS, y = ICF, label = CSP), nudge_y = taux_detail$label_nudge) +
+  xlab("Catégorie socio-professionnelle des femmes") +
+  ylab("Indice conjoncturel de f\u00e9condit\u00e9") +
+  theme_light() #+
+#theme(legend.position= "none")
+
