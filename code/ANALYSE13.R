@@ -86,6 +86,12 @@ femmes_procreer <- filter(bdr2020, (SEXE==2) & (AGED>15 & AGED<=50) & (LPRF==1 |
 femmes_procreer <- select(femmes_procreer, idfam, LPRF, AGED, CS1, DEPT, IPONDI, TACT)
 sum(femmes_procreer$IPONDI)
 
+#Structure des CSP
+
+csp <- cbind(as.data.frame(prop.table(table(femmes_procreer$CS1))*100),table(femmes_procreer$CS1))
+rename(csp, "CSP"="Var1")
+prop.table(table(bdr2020$CS1))*100
+
 # On cree des tables suivant la CSP des meres
 mcsp12 <- filter(femmes_procreer,CS1 %in% c("1","2"))
 mcsp34 <- filter(femmes_procreer,CS1 %in% c("3","4"))
@@ -164,7 +170,7 @@ taux_csp8_chom <- indicateurs(fcsp8_tact_12,mcsp8_tact_12)
 taux_csp8_autres <- indicateurs(fcsp8_tact_autres,mcsp8_tact_autres)
 
 taux_detail <- rbind(taux_csp12_actifs,taux_csp12_chom,taux_csp34_actifs,taux_csp34_chom,taux_csp56_actifs,taux_csp56_chom,taux_csp8_autres,taux_csp8_chom)
-rownames(taux_detail)=c("taux_csp12_actifs","taux_csp12_chom","taux_csp34_actifs","taux_csp34_chom","taux_csp56_actifs","taux_csp56_chom","taux_csp8_autres","taux_csp8_chom")
+rownames(taux_detail) <- c("taux_csp12_actifs","taux_csp12_chom","taux_csp34_actifs","taux_csp34_chom","taux_csp56_actifs","taux_csp56_chom","taux_csp8_autres","taux_csp8_chom")
 
 # On exporte en excel les taux de toutes les femmes
 write_xlsx(taux_def,"./taux_def.xlsx")
