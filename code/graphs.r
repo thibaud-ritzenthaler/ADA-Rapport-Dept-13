@@ -48,7 +48,8 @@ ggplot(taux_detail) +
   ylab("Indice conjoncturel de f\u00e9condit\u00e9") +
   scale_size(range = c(2,12), guide = "none") +
   theme_light() +
-  theme(legend.position=c(0.9, 0.85), legend.text = element_text(size = 12))
+  theme(legend.position=c(0.88, 0.85), legend.text = element_text(size = 18), legend.title = element_text(size = 20)) +
+  guides(shape = guide_legend(override.aes = list(size = 9)))
 
 
 ggplot(taux_detail) +
