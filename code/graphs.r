@@ -14,6 +14,14 @@ taux_detail <- read_csv("./taux_detail.csv") %>%
     Acti == "autres" ~ "Inactives",
   ))
 
+taux_detail$Acti <- taux_detail$Acti %>%
+  fct_relevel(
+    "En emploi", "Ch\u00F4meuses", "Inactives"
+  )
+
+
+
+
 
 taux_detail <- taux_detail %>% group_by(CS) %>%
   mutate(lblmeanicf = mean(ICF)) %>%
