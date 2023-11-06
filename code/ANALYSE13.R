@@ -89,7 +89,7 @@ sum(femmes_procreer$IPONDI)
 #Structure des CSP
 
 csp <- cbind(as.data.frame(prop.table(table(femmes_procreer$CS1))*100),table(femmes_procreer$CS1))
-rename(csp, "CSP"="Var1")
+colnames(csp) <- c("CSP","%","CSP","Effectifs")
 prop.table(table(bdr2020$CS1))*100
 
 # On cree des tables suivant la CSP des meres
@@ -169,8 +169,13 @@ taux_csp56_chom <- indicateurs(fcsp56_tact_12,mcsp56_tact_12)
 taux_csp8_chom <- indicateurs(fcsp8_tact_12,mcsp8_tact_12)
 taux_csp8_autres <- indicateurs(fcsp8_tact_autres,mcsp8_tact_autres)
 
+#On rajoute les effectifs des femmes
+effectifs_femmes_statut <- rbind(nrow(fcsp12_tact_11),nrow(fcsp12_tact_12),nrow(fcsp34_tact_11),nrow(fcsp34_tact_12),nrow(fcsp56_tact_11),nrow(fcsp56_tact_12),nrow(fcsp8_tact_autres),nrow(fcsp8_tact_12))
+colnames(effectifs_femmes_statut) <- "Effectifs"
+
 taux_detail <- rbind(taux_csp12_actifs,taux_csp12_chom,taux_csp34_actifs,taux_csp34_chom,taux_csp56_actifs,taux_csp56_chom,taux_csp8_autres,taux_csp8_chom)
 rownames(taux_detail) <- c("taux_csp12_actifs","taux_csp12_chom","taux_csp34_actifs","taux_csp34_chom","taux_csp56_actifs","taux_csp56_chom","taux_csp8_autres","taux_csp8_chom")
+taux_detail <- cbind(taux_detail,effectifs_femmes_statut)
 
 # On exporte en excel les taux de toutes les femmes
 write_xlsx(taux_def,"./taux_def.xlsx")
