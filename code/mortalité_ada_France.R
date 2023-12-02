@@ -2,9 +2,16 @@
 library(tidyverse)
 library(questionr)
 library(readxl)
-#On charge les donnees
-Morta_France <- read.csv("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/Morta_France.csv", sep="")
+library(writexl)
 
+setwd("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13")
+## Pour calculer l'espérance de vie en bonne santé il faut :
+## Une base de logement avec ceux en institution (ix)
+## Une base de mortalité avec mx (quotient), qx (proba de décès)
+
+#On charge les donnees
+MH <- read_excel("data/Morta_France.xlsx", sheet= "Hommes")
+MF <- read_excel("data/Morta_France.xlsx",sheet= "Femmes") 
 base_vqs <- read.delim("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/base_vqs.csv")
                      
 
@@ -23,29 +30,24 @@ incap <- base %>%
 h_incap <- filter(incap,sexe==1)
 f_incap <- filter(incap,sexe==2)
 
-#On filtre les tables de morta pour avoir seuelement 2014
-F_2014 <- select(Morta_France,"Year","Age","Female")
-M_2014 <- select(Morta_France, "Year","Age","Male")
-
-F_2014 <- filter(F_2014,Year==2014)
-M_2014 <- filter(M_2014,Year==2014)
-
-F_2014 <- F_2014 %>% mutate(qx= Female)
-M_2014 <- M_2014 %>% mutate(qx= Male)
 #On joint table de morta et données de l'enquete
-data_f <- merge(f_incap,F_2014,by.x="age",by.y="Age")
-data_h <- merge(h_incap,M_2014,by.x="age",by.y="Age") 
+data_f <- merge(f_incap,MF,by.x="age",by.y="Age")
+data_h <- merge(h_incap,MH,by.x="age",by.y="Age") 
 
 #On charge les taux de "logements"
-logements_h <-  read_excel("Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/logement_france.xlsx",sheet="Hommes")
-logements_f <- read_excel("Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/logement_france.xlsx", sheet = "Femmes")
-
+logement_h <- read_excel("data/logement_france.xlsx", 
+                              sheet = "Hommes")
+logement_f <- read_excel("data/logement_france.xlsx", 
+                              sheet = "Femmes")
 #On joint les données nécessaires
-bdd_f <- merge(f_incap, F_2014, by.x="age",by.y="Age")
-bdd_f <- merge(bdd_f,logements_f,all.x = TRUE)
+bdd_f <- merge(f_incap, MF, by.x="age",by.y="Age")
+bdd_f <- merge(bdd_f,logement_f,all.x = TRUE)
 
-bdd_h <- merge(h_incap, M_2014, by.x="age",by.y="Age",all.x = TRUE)
-bdd_h <- merge(bdd_h,logements_h,all.x = TRUE)
+bdd_h <- merge(h_incap, MH, by.x="age",by.y="Age",all.x = TRUE)
+bdd_h <- merge(bdd_h,logement_h,all.x = TRUE)
+
+## On supprime les lignes avec des NA
+bdd_h<- bdd_h[-c(27:47),]
 
 #Fonction
 
@@ -149,3 +151,6 @@ hly <- function(df) {
 
 newbddf <- hly(bdd_f)
 newbddh <- hly(bdd_h)
+
+write_xlsx(newbddh,"C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/Morta_Homme_France.xlsx")
+write_xlsx(newbddf,"C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/Morta_Femme_France.xlsx")
