@@ -2,6 +2,7 @@
 data/FD_INDREGZE_2020.csv
 data/base_vqs.csv
 data//BDR2020.feather
+data/migcom20.Rdata
 
 # Icloud
 *.icloud

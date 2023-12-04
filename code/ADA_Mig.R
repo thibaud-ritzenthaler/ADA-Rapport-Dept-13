@@ -2,42 +2,42 @@ packages <- c("tidyverse", "survey", "gtsummary", "mapsf", "sf")
 lapply(packages, library, character.only=TRUE)
 theme_gtsummary_language("fr", decimal.mark = ",", big.mark = " ")
 
-setwd("C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse démographique appliquée")
+# setwd("C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse demographique appliquee")
+# setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13/data")
 
 # migcom <- data.table::fread("C:/Users/Progedo/Desktop/Seafile/Data/RP/RP2020_MIGCOM_csv/FD_MIGCOM_2020.csv", sep = ";", header = TRUE)
 # save(migcom, file = "migcom20.Rdata")
-setwd("C:/Users/Progedo/Desktop/Seafile/Enseignement/2023-2024/ADA M2/Migrations")
 load("migcom20.Rdata")
 
 
-##1) Proportions de la population selon le lieu de naissance, le lieu de résidence antérieure et l'ancienneté dans le logement####
+##1) Proportions de la population selon le lieu de naissance, le lieu de residence anterieure et l'anciennete dans le logement####
 
 #On recode le lieu de naissance (regrouper les DROM et les COM)
 migcom$INAI_r <- case_match(migcom$INAI,
-                            1 ~ "Dans le département de résidence actuelle",
-                            2 ~ "Dans un autre département de la région de résidence actuelle",
-                            3 ~ "Hors de la région de résidence actuelle : en métropole",
-                            c(4, 5) ~ "Hors de la région de résidence actuelle : dans un DROM-COM",
-                            6 ~ "À l'étranger",
-                            .ptype = factor(levels = c("Dans le département de résidence actuelle","Dans un autre département de la région de résidence actuelle",
-                                                       "Hors de la région de résidence actuelle : en métropole",
-                                                       "Hors de la région de résidence actuelle : dans un DROM-COM", "À l'étranger")))
+                            1 ~ "Dans le departement de residence actuelle",
+                            2 ~ "Dans un autre departement de la region de residence actuelle",
+                            3 ~ "Hors de la region de residence actuelle : en metropole",
+                            c(4, 5) ~ "Hors de la region de residence actuelle : dans un DROM-COM",
+                            6 ~ "À l'etranger",
+                            .ptype = factor(levels = c("Dans le departement de residence actuelle","Dans un autre departement de la region de residence actuelle",
+                                                       "Hors de la region de residence actuelle : en metropole",
+                                                       "Hors de la region de residence actuelle : dans un DROM-COM", "À l'etranger")))
 
-#On recode le lieu de résidence antérieur (regrouper tous les lieux "France hors région actuelle", et les lieus à l'étranger)
+#On recode le lieu de residence anterieur (regrouper tous les lieux "France hors region actuelle", et les lieus à l'etranger)
 migcom$IRAN_r <- case_match(migcom$IRAN,
                             0 ~ "Commune ou arrondissement de rattachement",
                             1 ~ "Dans le même logement",
                             2 ~ "Dans un autre logement de la même commune",
-                            3 ~ "Dans une autre commune du département",
-                            4 ~ "Dans un autre département de la région",
-                            c(5,6,7) ~ "Hors de la région de résidence actuelle en France (métropole ou DROM-COM)",
-                            c(8,9) ~ "À l'étranger",
+                            3 ~ "Dans une autre commune du departement",
+                            4 ~ "Dans un autre departement de la region",
+                            c(5,6,7) ~ "Hors de la region de residence actuelle en France (metropole ou DROM-COM)",
+                            c(8,9) ~ "À l'etranger",
                             .ptype = factor(levels = c("Commune ou arrondissement de rattachement", "Dans le même logement","Dans un autre logement de la même commune",
-                                                       "Dans une autre commune du département","Dans un autre département de la région",
-                                                       "Hors de la région de résidence actuelle en France (métropole ou DROM-COM)", "À l'étranger")))
+                                                       "Dans une autre commune du departement","Dans un autre departement de la region",
+                                                       "Hors de la region de residence actuelle en France (metropole ou DROM-COM)", "À l'etranger")))
 
 
-#Recodage de l'ancienneté dans le logement
+#Recodage de l'anciennete dans le logement
 migcom$ANEMC_r <- recode_factor(migcom$ANEMC,
                                 "0" = "Moins de 2 ans",
                                 "1" = "De 2 à 4 ans",
@@ -48,8 +48,8 @@ migcom$ANEMC_r <- recode_factor(migcom$ANEMC,
                                 "Z" = "Hors logement ordinaire")
 
 
-#déclaration des poids
-migcom_w <- svydesign(ids = ~ 1, weights = ~ IPONDI, data = filter(migcom, str_sub(COMMUNE, 1,2) == "67")) 
+#declaration des poids
+migcom_w <- svydesign(ids = ~ 1, weights = ~ IPONDI, data = filter(migcom, str_sub(COMMUNE, 1,2) == "13"))
 
 
 #calcul des indicateurs
@@ -60,40 +60,40 @@ migcom_w %>%
   ) %>%
   bold_labels()
 
-##2) indicateurs de migration inter- et intra-départementale####
+##2) indicateurs de migration inter- et intra-departementale####
 
-#On extrait le numéro du département depuis le code commune (2 permiers caractères)
+#On extrait le numero du departement depuis le code commune (2 permiers caracteres)
 migcom <- migcom %>%
   mutate(DEPACT = case_when(METRODOM == "M" ~ str_sub(COMMUNE,1,2),
                             METRODOM == "D" ~ str_sub(COMMUNE,1,3)),
-         #Le code des DROM est codé sur 3 caractères
+         #Le code des DROM est code sur 3 caracteres
          DEPANT = case_when(str_sub(DCRAN, 1, 2) == "97" ~ str_sub(DCRAN, 1, 3),
                             .default = str_sub(DCRAN, 1, 2)))
 
 #population entrante (immigrante)
 ENTR <- migcom %>%
-  filter(DEPACT != DEPANT) %>% #on filtre ceux dont le dep actuel n'est pas le même que le dep antérieur
+  filter(DEPACT != DEPANT) %>% #on filtre ceux dont le dep actuel n'est pas le même que le dep anterieur
   group_by(DEPACT) %>%
-  summarise(ENTR = sum(IPONDI)) %>% #nb d'individus par département de résidence en tenant compte de la pondération
-  rename(DEP = DEPACT) # On renomme la variable pour compiler ultérieurement les différentes sous-populations
+  summarise(ENTR = sum(IPONDI)) %>% #nb d'individus par departement de residence en tenant compte de la ponderation
+  rename(DEP = DEPACT) # On renomme la variable pour compiler ulterieurement les differentes sous-populations
 
-#population sortante (émigrante)
+#population sortante (emigrante)
 SORT <- migcom %>%
   filter(DEPACT != DEPANT) %>%
   group_by(DEPANT) %>%
-  summarise(SORT = sum(IPONDI)) %>% #nb d'individus par département d'origine
+  summarise(SORT = sum(IPONDI)) %>% #nb d'individus par departement d'origine
   rename(DEP = DEPANT)
 
-#Population en n-1 (sédentaires + sortants)
+#Population en n-1 (sedentaires + sortants)
 POPN_1 <- migcom %>%
   group_by(DEPANT) %>%
-  summarise(POPN_1 = sum(IPONDI)) %>% #nb d'individus par dep antérieur, qq soit le dep actuel
+  summarise(POPN_1 = sum(IPONDI)) %>% #nb d'individus par dep anterieur, qq soit le dep actuel
   rename(DEP = DEPANT)
 
 #population en n
 POPN <- migcom %>%
   group_by(DEPACT) %>%
-  summarise(POPN = sum(IPONDI)) %>% #nb d'individus par dep actuel, qq soit le dep antérieur
+  summarise(POPN = sum(IPONDI)) %>% #nb d'individus par dep actuel, qq soit le dep anterieur
   rename(DEP = DEPACT)
 
 #jointure 
@@ -103,7 +103,7 @@ DATA <- df_list %>% reduce(inner_join, by = "DEP")
 DATA$TM <- 1000*(DATA$ENTR-DATA$SORT)/((DATA$POPN_1 + DATA$POPN)/2)
 
 ###Taux de migration nette interne (def. de l'Observatoire des Territoires :
-#taux d'évolution de la population imputable aux mouvements migratoires entre cette zone et les autres parties du territoire national.
+#taux d'evolution de la population imputable aux mouvements migratoires entre cette zone et les autres parties du territoire national.
 ###
 
 #cartographie
@@ -111,15 +111,15 @@ France <- st_read("Fonds de cartes-20230905/DEPARTEMENT.shp")
 France <- merge(France, DATA, by = "DEP", all.x = TRUE)
 
 
-#Déterminer l'échelle de couleurs pour la carte. On veut pouvoir distinguer facilement les dept avec un TM < 0 et ceux avec un TM > 0.
-#Les classes formées doivent être +/- homogènes.
+#Determiner l'echelle de couleurs pour la carte. On veut pouvoir distinguer facilement les dept avec un TM < 0 et ceux avec un TM > 0.
+#Les classes formees doivent être +/- homogenes.
 hist(DATA$TM) #distribution des TM
-sd(DATA$TM) #écart-type de la distribution
+sd(DATA$TM) #ecart-type de la distribution
 breaks <- mf_get_breaks(DATA$TM, breaks = "fixed", nbreaks = 4, fixedBreaks = c(min(DATA$TM), 0,5,10,max(DATA$TM)))
 col_pal <- mf_get_pal(n = c(1,3), pal = c("Earth", "Red-Yellow"))
 
 mf_map(France, var = "TM", type = "choro", pal = col_pal, breaks = breaks, col_na = "grey",
-       leg_no_data = "Absence de données",
+       leg_no_data = "Absence de donnees",
        leg_title = "Taux de migration\nnette interne (‰)")
 
 mf_title("Migrations interdepartementales, 2020", 
@@ -128,16 +128,16 @@ mf_credits("Auteur : M. Crouzet\nSources: INSEE & IGN, 2020")
 mf_scale(size = 100, unit = "km")
 mf_arrow('topleft')
 
-#migration infra-départementale : taux de mobilité infra
-#part de la population qui a changé de commune au sein du même département
+#migration infra-departementale : taux de mobilite infra
+#part de la population qui a change de commune au sein du même departement
 TMINF <- migcom  %>%
-  filter(DEPACT == DEPANT) %>% #on garde ceux qui n'ont pas changé de département
+  filter(DEPACT == DEPANT) %>% #on garde ceux qui n'ont pas change de departement
   #recodage des codes de Paris, Marseille et Lyon pour ne pas tenir compte des arrondissements
   mutate(COMANT = case_when (DCRAN %in% c("75101":"75120") ~ "75056", 
                              DCRAN %in% c("13201":"13216") ~ "13055", 
                              DCRAN %in% c("69381":"69389") ~ "69123",
                              .default = DCRAN)) %>%
-  mutate(MOB = ifelse(COMANT != COMMUNE, "1", "0")) %>% #l'individu a-t-il changé de commune ? 1 si oui, 0 si non
+  mutate(MOB = ifelse(COMANT != COMMUNE, "1", "0")) %>% #l'individu a-t-il change de commune ? 1 si oui, 0 si non
   group_by(DEPACT, MOB) %>%
   summarise(nb = sum(IPONDI)) %>% #nb de mobiles et d'immobiles
   mutate(TMINFRA = 100* nb/sum(nb)) %>% #part de mobiles et d'immobiles dans la population totale du dept
@@ -148,11 +148,11 @@ TMINF <- migcom  %>%
 France <- merge(France, TMINF, by.x = "DEP", by.y = "DEPACT", all.x = TRUE)
 
 hist(TMINF$TMINFRA)
-#On détermine l'échelle de couleurs selon la méthode "moyenne écart-type" 
+#On determine l'echelle de couleurs selon la methode "moyenne ecart-type" 
 msd <- mf_get_breaks(TMINF$TMINFRA, breaks = "msd", k = 1, central = TRUE) 
 
-mf_map(France, var = "TMINFRA", type = "choro", pal = "YlOrBr", breaks = "jenks", nbreaks = 5, col_na = "grey", leg_no_data = "Absence de données",
-       leg_title = "Taux de de mobilité\ninfra (en %)")
+mf_map(France, var = "TMINFRA", type = "choro", pal = "YlOrBr", breaks = "jenks", nbreaks = 5, col_na = "grey", leg_no_data = "Absence de donnees",
+       leg_title = "Taux de de mobilite\ninfra (en %)")
 
 mf_title("Migrations intradepartementales, 2020", pos = "center")
 mf_credits("Auteur : M. Crouzet\nSources: INSEE & IGN, 2020")
