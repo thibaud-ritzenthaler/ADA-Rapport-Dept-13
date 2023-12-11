@@ -6,7 +6,11 @@ library(readxl)
 Morta_France <- read.csv("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/Morta_France.csv", sep="")
 
 base_vqs <- read.delim("C:/Users/abdel/Desktop/Cours Master/Git_dossier/ADA-Rapport-Dept-13/data/base_vqs.csv")
-                     
+
+Morta_France <- read.csv("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data/Morta_France.csv", sep="")
+
+base_vqs <- read.delim("/Users/adelejnd/Desktop/ADA-Rapport-Dept-13/data/base_vqs.csv")
+
 
 #Recodage de la variable d'incapacité limitat
 base <- mutate(base_vqs, incap=ifelse(limitat==1,"non","oui"))
