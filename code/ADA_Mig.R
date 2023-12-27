@@ -2,7 +2,7 @@ packages <- c("tidyverse", "survey", "gtsummary", "mapsf", "sf")
 lapply(packages, library, character.only=TRUE)
 theme_gtsummary_language("fr", decimal.mark = ",", big.mark = " ")
 
-# setwd("C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse demographique appliquee")
+setwd("C:/Users/abdel/Desktop/Cours Master/Semestre 3/Analyse démographique appliquée")
 # setwd("C:/Users/Tibo/Documents/Demographie/M2S1/UE1 - Analyse Demographique Appliquee/ADA-Rapport-Dept-13/data")
 
 # migcom <- data.table::fread("C:/Users/Progedo/Desktop/Seafile/Data/RP/RP2020_MIGCOM_csv/FD_MIGCOM_2020.csv", sep = ";", header = TRUE)
@@ -158,3 +158,136 @@ mf_title("Migrations intradepartementales, 2020", pos = "center")
 mf_credits("Auteur : M. Crouzet\nSources: INSEE & IGN, 2020")
 mf_scale(size = 100, unit = "km")
 mf_arrow('topleft')
+
+
+## Partie 2 :
+install.packages("ggalluvial")
+packages <- c("tidyverse",  "mapsf", "sf", "readxl", "ggalluvial", "ggthemes")
+lapply(packages, library, character.only=TRUE)
+library(ggalluvial)
+
+load("migcom20.Rdata")
+
+tab_geo_com <- read_excel("table-appartenance-geo-communes-23.xlsx", skip = 5)
+tab_geo_com <- select(tab_geo_com, CODGEO, EPCI)
+
+migcom <- migcom %>%
+  mutate(DEPACT = case_when(METRODOM == "M" ~ str_sub(COMMUNE,1,2),
+                            METRODOM == "D" ~ str_sub(COMMUNE,1,3)),
+         DEPANT = case_when(str_sub(DCRAN, 1, 2) == "97" ~ str_sub(DCRAN, 1, 3),
+                            .default = str_sub(DCRAN, 1, 2)),
+         COMANT = case_when (DCRAN %in% c("75101":"75120") ~ "75056", 
+                             DCRAN %in% c("13201":"13216") ~ "13055", 
+                             DCRAN %in% c("69381":"69389") ~ "69123",
+                             .default = DCRAN))
+
+#on va travailler sur le Bas-Rhin (individus qui y vivent ou y vivaient 1 an avant le RP)
+BR <- filter(migcom, DEPACT == "13" | DEPANT == "13")
+#on récupère l'EPCI de la commune de résidence et de la commune antérieure
+#EPCI de la commune actuelle
+BR <- merge(BR, tab_geo_com, by.x = "COMMUNE", by.y = "CODGEO", all.x = TRUE)
+BR <- rename(BR, EPCI_ACT = EPCI) #on renomme pour différencier l'EPCI actuel de l'EPCI antérieur
+#EPCI de la commune antérieure
+BR <- merge(BR, tab_geo_com, by.x = "COMANT", by.y = "CODGEO", all.x = TRUE)
+BR <- rename(BR, EPCI_ANT = EPCI)
+
+#calcul des indicateurs de mobilité à l'échelle de l'EPCI
+
+#1) Taux de migration nette interne (Entrants - Sortants / pop moyenne)
+
+#population entrante (immigrante)
+ENTR <- BR %>%
+  filter(EPCI_ACT != EPCI_ANT) %>% 
+  group_by(EPCI_ACT) %>%
+  summarise(ENTR = sum(IPONDI)) %>% 
+  rename(EPCI = EPCI_ACT) 
+
+#population sortante (émigrante)
+SORT <- BR %>%
+  filter(EPCI_ACT != EPCI_ANT) %>%
+  group_by(EPCI_ANT) %>%
+  summarise(SORT = sum(IPONDI)) %>% 
+  rename(EPCI = EPCI_ANT)
+
+#Population en n-1 (sédentaires + sortants)
+POPN_1 <- BR %>%
+  group_by(EPCI_ANT) %>%
+  summarise(POPN_1 = sum(IPONDI)) %>% 
+  rename(EPCI = EPCI_ANT)
+
+#population en n
+POPN <- BR %>%
+  group_by(EPCI_ACT) %>%
+  summarise(POPN = sum(IPONDI)) %>% 
+  rename(EPCI = EPCI_ACT)
+
+#jointure 
+df_list <- list(ENTR, SORT, POPN_1, POPN)
+DATA <- df_list %>% reduce(inner_join, by = "EPCI")
+#calcul du taux de migration nette interne
+DATA$TM <- 1000*(DATA$ENTR-DATA$SORT)/((DATA$POPN_1 + DATA$POPN)/2)
+
+#cartographie
+
+st_layers("/Bouches-du-Rhones.gpkg") #pour connaître le nom des couches présentes dans le geopackage
+EPCI_13 <- st_read("Bouches-du-Rhone.gpkg", layer = "EPCI") #importation de la couche EPCI
+DEP_13 <- st_read("Bouches-du-Rhone.gpkg", layer = "Departement") #importation de la couche Département
+
+EPCI_13 <- merge(EPCI_13, DATA, by.x = "CODE_SIREN", by.y = "EPCI", all.x = TRUE) 
+
+#détermination des classes
+hist(EPCI_13$TM)
+sd(EPCI_13$TM)
+breaks <- mf_get_breaks(EPCI_13$TM, breaks = "fixed", nbreaks = 6, fixedBreaks = c(min(EPCI_13$TM),-10,-5,0,5,10,max(EPCI_13$TM)))
+col_pal <- mf_get_pal(n = c(3,3), pal = c("Teal", "Red-Yellow"))
+
+dev.off() #vider la fenêtre d'affichage des figures si nécessaire
+mf_map(DEP_13)
+mf_map(EPCI_13, var = "TM", type = "choro", pal = col_pal, breaks = breaks, col_na = "grey",
+       leg_no_data = "Absence de données",
+       leg_title = "Taux de migration\nnette interne",
+       add = TRUE)
+mf_map(DEP_13, col = NULL, add = TRUE)
+
+mf_title("Migration nette à l'échelle des EPCI, Bouches-du-Rhône, 2020", 
+         pos = "center") 
+mf_credits("Sources: INSEE & IGN, 2020")
+mf_scale(size = 40, unit = "km")
+mf_arrow('topleft')
+mf_label(EPCI_13, "NOM", cex = .5, halo = TRUE)
+#dev.off()
+
+#graphique de flux (ggalluvial)
+#pour représenter les flux entre les EPCI au sein du 67
+DATA <- filter(BR, IRAN != 1) %>% #on ne garde que les individus qui ont migré
+  mutate(EPCI_ACT_R = case_when(DEPACT != "13" ~ "Hors Bouches-du-Rhone",
+                                EPCI_ACT == "200054807" ~ "Métropole d'Aix-Marseille-Provence",
+                                EPCI_ACT == "241300417" ~ "Arles-Crau-Camargue-Montagnette",
+                                EPCI_ACT == "200035087" ~ "Terre de Provence",
+                                EPCI_ACT == "241300375" ~ "Vallée des Baux-Alpilles",
+                                .default = "Autres EPCI des Bouches-du-Rhone"),
+         EPCI_ANT_R = case_when(DEPANT != "13" ~ "Hors Bouches-du-Rhone",
+                                EPCI_ANT == "200054807" ~ "Métropole d'Aix-Marseille-Provence",
+                                EPCI_ANT == "241300417" ~ "Arles-Crau-Camargue-Montagnette",
+                                EPCI_ANT == "200035087" ~ "Terre de Provence",
+                                EPCI_ANT == "241300375" ~ "Vallée des Baux-Alpilles",
+                                .default = "Autres EPCI des Bouches-du-Rhone")) %>%
+  group_by(EPCI_ANT_R, EPCI_ACT_R) %>%
+  summarise(Freq = sum(IPONDI))
+
+DATA %>% 
+  ggplot(aes(axis1 = EPCI_ANT_R, axis2 = EPCI_ACT_R, y = Freq)) +
+  scale_x_discrete(limits = c("Lieu de résidence antérieure", "Lieu de résidence actuelle"), expand = c(.2,.2)) +
+  ylab("Nombre d'individus") +
+  geom_alluvium(aes(fill = EPCI_ANT_R)) +
+  geom_stratum() +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  labs(title = "Flux migratoires internes depuis/vers les EPCI du Bas-Rhin, 2020", 
+       caption = "Champ : Personnes ayant changé de logement entre le 1e janvier 2019 et le 1e janvier 2020, et dont la résidence actuelle et/ou antérieure se situe dans le Bas-Rhin\nSource : INSEE, Migcom 2020") +
+  theme_minimal()+
+  theme(legend.position = "none",
+        plot.caption = element_text(hjust = 0),
+        plot.title = element_text(hjust = .5))
+
+
+
